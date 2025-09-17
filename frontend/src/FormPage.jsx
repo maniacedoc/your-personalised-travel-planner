@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function FormPage() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     ethnicity: "",
@@ -12,7 +14,6 @@ export default function FormPage() {
   });
 
   const [currentImage, setCurrentImage] = useState(0);
-  const navigate = useNavigate();
 
   const images = [
     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
@@ -21,6 +22,7 @@ export default function FormPage() {
     "https://images.unsplash.com/photo-1493558103817-58b2924bce98",
   ];
 
+  // Background image slider
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length);
@@ -28,6 +30,7 @@ export default function FormPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle input changes
   function handleChange(e) {
     const { name, value, multiple, options } = e.target;
     if (multiple) {
@@ -40,6 +43,7 @@ export default function FormPage() {
     }
   }
 
+  // Handle form submission
   async function handleSubmit(e) {
     e.preventDefault();
     console.log("Form submitting:", form); // ✅ should log
@@ -72,11 +76,8 @@ export default function FormPage() {
       className="fixed inset-0 flex flex-col items-center justify-center bg-cover bg-center transition-all duration-500"
       style={{
         backgroundImage: `url(${images[currentImage]})`,
-        backgroundSize: "cover", // Ensures the image covers the entire viewport
-        backgroundRepeat: "no-repeat", // Prevents tiling
-        backgroundPosition: "center", // Centers the image  
-        height: "100vh", // Ensures it takes full viewport height
-        width: "100vw" // Ensures it takes full viewport width
+        height: "100vh",
+        width: "100vw",
       }}
     >
       <div className="absolute inset-0 bg-blue-900/40"></div>
@@ -176,10 +177,6 @@ export default function FormPage() {
           </form>
         </div>
       </div>
-
-      <footer className="relative z-10 bg-blue-950/90 text-white py-4 w-full text-center mt-6">
-        <p>📧 Contact us: support@travelplanner.com</p>
-      </footer>
     </div>
   );
 }
