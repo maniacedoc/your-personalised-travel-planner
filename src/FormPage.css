@@ -1,0 +1,15 @@
+.form-container {
+    border: 2px solid #333; /* Solid border, 2px thick, dark gray color */
+    padding: 10px; /* Space between the border and form content */
+    border-radius: 8px; /* Rounded corners */
+    background-color: lavender; /* Light background color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    max-width: 600px; /* Optional: limit the width of the form box */
+    margin: 10px auto; /* Optional: center the form box on the page */
+}
+
+.formquestions {
+    color: black; /* Set label text color to black */
+    text-align: center; /* Center align the label text */
+}
+

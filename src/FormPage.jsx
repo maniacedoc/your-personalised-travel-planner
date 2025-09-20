@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "./FormPage.css";
 
 export default function FormPage() {
   const [form, setForm] = useState({
@@ -12,6 +13,7 @@ export default function FormPage() {
   });
 
   const [currentImage, setCurrentImage] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const images = [
@@ -42,7 +44,40 @@ export default function FormPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
     console.log("Form submitting:", form); // ✅ should log
+
+    function parseItinerary(text) {
+      // Split by "Day X" headings
+      const dayRegex = /Day\s+(\d+)/g;
+      const days = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = dayRegex.exec(text)) !== null) {
+        if (match.index !== 0) {
+          const dayText = text.substring(lastIndex, match.index).trim();
+          if (days.length > 0) {
+            days[days.length - 1].activities = dayText
+              .split(/\\n|\\r\\n/)
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0);
+          }
+        }
+        days.push({ day: parseInt(match[1]), activities: [] });
+        lastIndex = dayRegex.lastIndex;
+      }
+      // Add last day activities
+      const lastDayText = text.substring(lastIndex).trim();
+      if (days.length > 0) {
+        days[days.length - 1].activities = lastDayText
+          .split(/\\n|\\r\\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+      }
+
+      return { days };
+    }
 
     try {
       const response = await fetch("http://localhost:4000/api/plan", {
@@ -54,14 +89,18 @@ export default function FormPage() {
       const data = await response.json();
       console.log("Backend response:", data);
 
+      setLoading(false);
+
       if (data.itinerary) {
+        const parsedItinerary = parseItinerary(data.itinerary);
         navigate("/itinerary", {
-          state: { itinerary: data.itinerary, duration: form.duration },
+          state: { itinerary: parsedItinerary, duration: form.duration },
         });
       } else {
         alert("Failed to get itinerary from backend.");
       }
     } catch (err) {
+      setLoading(false);
       console.error("Fetch error:", err);
       alert("Error fetching itinerary. Check backend is running.");
     }
@@ -76,56 +115,59 @@ export default function FormPage() {
         backgroundRepeat: "no-repeat", // Prevents tiling
         backgroundPosition: "center", // Centers the image  
         height: "100vh", // Ensures it takes full viewport height
-        width: "100vw" // Ensures it takes full viewport width
+        width: "100vw", // Ensures it takes full viewport width
       }}
     >
       <div className="absolute inset-0 bg-blue-900/40"></div>
 
-      <div className="relative z-10 flex-1 flex items-center justify-center w-full px-4">
-        <div className="bg-blue-900/90 text-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-          <h1 className="text-3xl font-extrabold text-center mb-6">
+      <div className="relative z-10 flex-1 flex items-center justify-center w-full px-10">
+        <div className="bg-blue-900/90 text-white rounded-xl shadow-2xl p-8 w-full max-w-md border-2 border-white">
+          <h1 className="text-3xl font-extrabold text-center mb-20" style={{textAlign: 'center'}}>
             TRAVEL PLANNER
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold">Name</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
-                required
-              />
+          <form onSubmit={handleSubmit} className="form-container">
+            <div className="formpart">
+             <label className="formquestions">Name: </label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
+              required
+              disabled={loading}
+            />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold">Ethnicity</label>
-              <input
-                type="text"
-                name="ethnicity"
-                value={form.ethnicity}
-                onChange={handleChange}
-                className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
-                required
-              />
+            <div className="formpart">
+              <label className="formquestions">Ethnicity: </label>
+            <input
+              type="text"
+              name="ethnicity"
+              value={form.ethnicity}
+              onChange={handleChange}
+              className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
+              required
+              disabled={loading}
+            />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold">Budget (₹)</label>
-              <input
-                type="number"
-                name="budget"
-                value={form.budget}
-                onChange={handleChange}
-                className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
-                required
-              />
+            <div className="formpart">
+              <label className="formquestions">Budget (₹): </label>
+            <input
+              type="number"
+              name="budget"
+              value={form.budget}
+              onChange={handleChange}
+              className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
+              required
+              disabled={loading}
+            />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold">Interests</label>
+            <div className="formpart">
+              <label className="formquestions">Interests: </label>
               <select
                 name="interests"
                 multiple
@@ -133,6 +175,7 @@ export default function FormPage() {
                 onChange={handleChange}
                 className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black h-32"
                 required
+                disabled={loading}
               >
                 <option value="nightlife">Nightlife</option>
                 <option value="wildlife">Wildlife Safari</option>
@@ -141,37 +184,42 @@ export default function FormPage() {
                 <option value="heritage">Heritage & Culture</option>
                 <option value="beaches">Beaches</option>
               </select>
+                <p style={{ color: 'gray', fontSize: 'smaller' }}>(Hold Ctrl and Click to add multiple options)</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-bold">Duration (days)</label>
-              <input
-                type="number"
-                name="duration"
-                value={form.duration}
-                onChange={handleChange}
-                className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
-                required
-              />
+            <div className="formpart">
+              <label className="formquestions">Duration (days): </label>
+            <input
+              type="number"
+              name="duration"
+              value={form.duration}
+              onChange={handleChange}
+              className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
+              required
+              disabled={loading}
+            />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold">State to Visit</label>
-              <input
-                type="text"
-                name="state"
-                value={form.state}
-                onChange={handleChange}
-                className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
-                required
-              />
+            <div className="formpart">
+              <label className="formquestions">State to Visit</label>
+            <input
+              type="text"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              className="mt-1 w-full border-2 border-blue-500 rounded-md p-2 font-semibold text-black"
+              required
+              disabled={loading}
+            />
             </div>
 
             <button
               type="submit"
               className="w-full bg-green-600 text-white py-2 rounded-md mt-4 hover:bg-green-700 font-bold shadow-md"
+             
+              disabled={loading}
             >
-              Submit
+              {loading ? "Loading..." : "Submit"}
             </button>
           </form>
         </div>
