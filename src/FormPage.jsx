@@ -80,7 +80,7 @@ export default function FormPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/plan", {
+      const response = await fetch("https://nodejs-serverless-function-express-ten-inky.vercel.app/api/plan"", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
